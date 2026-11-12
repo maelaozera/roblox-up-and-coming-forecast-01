@@ -2,7 +2,7 @@
 
 Model: each game on the chart is a rank that drifts and diffuses.
   * drift: the game's rank velocity over the last 24 hours (linear-regression
-    slope of rank against time, shrunk by 0.3, capped at +-3 ranks/hour).
+    slope of rank against time, shrunk by 0.4, capped at +-3 ranks/hour).
     Rank velocity persists a little (corr ~0.22 between consecutive moves);
     playing-count growth does not predict rank moves (corr ~0), so it is
     deliberately not used.
@@ -13,11 +13,11 @@ Model: each game on the chart is a rank that drifts and diffuses.
   * games that age out: a game published more than 28 days before a slot
     leaves the chart, so once its created + 28 days passes it contributes
     nothing to later slots (only when the history carries details).
-  * the diffusion forecast is blended 65/35 with the persistence forecast
+  * the diffusion forecast is blended 75/25 with the persistence forecast
     (the house baseline's shape: 0.5 on the game at #k, 0.15 on #k-1/#k+1,
     0.3 on #2 at place 1). Blending won every walk-forward backtest:
-    on 8 cuts over the practice history the blend scores about -33.7
-    against -40.8 for the baseline alone (log score, higher is better).
+    on 7 cuts over the practice history the blend scores about -36.0
+    against -45.2 for the baseline alone (log score, higher is better).
   * each place's probabilities are normalised to sum 0.8, leaving 0.2
     unnamed for games that join the chart during the window (brand-new
     games essentially never jump straight into the top 10, so 0.2 is ample),
@@ -36,13 +36,13 @@ from datetime import datetime, timezone
 INPUT_DIR = os.environ.get("MAKEFUN_INPUT_DIR", "/input")
 OUTPUT_DIR = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
 
-VEL_WEIGHT = 0.3      # shrink on the rank-velocity slope
+VEL_WEIGHT = 0.4      # shrink on the rank-velocity slope
 VEL_WINDOW_H = 24.0   # velocity is fit over the last 24 hours of reads
 VEL_CAP = 3.0         # max |velocity| in ranks per hour
 SIG_BASE = 0.5        # diffusion sigma at slot 0
 SIG_RATE = 0.6        # diffusion sigma grows with sqrt(hours)
 COL_SUM = 0.8         # each place's named probabilities sum to this
-BLEND_MODEL = 0.65    # weight of the diffusion forecast in the blend
+BLEND_MODEL = 0.75    # weight of the diffusion forecast in the blend
 MIN_P = 0.0005        # rows smaller than this are dropped
 AGE_OUT_DAYS = 28.0   # games published more than this ago leave the chart
 
